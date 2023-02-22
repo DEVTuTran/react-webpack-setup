@@ -2,25 +2,25 @@
 const path = require('path')
 module.exports = {
   extends: [
-    // Chúng ta sẽ dùng các rule mặc định từ các plugin mà chúng ta đã cài.
+    // We will use the default rules from the plugins we have installed.
     'eslint:recommended',
     'plugin:react/recommended',
     'plugin:react-hooks/recommended',
     'plugin:import/recommended',
     'plugin:jsx-a11y/recommended',
     'plugin:@typescript-eslint/recommended',
-    // Disable các rule mà eslint xung đột với prettier.
-    // Để cái này ở dưới để nó override các rule phía trên!.
+    // Disable rules where eslint conflicts with prettier.
+    // Leave this below so it overrides the rules above!.
     'eslint-config-prettier',
     'prettier'
   ],
   plugins: ['prettier'],
   settings: {
     react: {
-      // Nói eslint-plugin-react tự động biết version của React.
+      // Tell eslint-plugin-react to automatically know the version of React.
       version: 'detect'
     },
-    // Nói ESLint cách xử lý các import
+    // Tell ESLint how to handle imports
     'import/resolver': {
       node: {
         paths: [path.resolve(__dirname)],
@@ -32,11 +32,11 @@ module.exports = {
     node: true
   },
   rules: {
-    // Tắt rule yêu cầu import React trong file jsx
+    // Turn off the rule that requires React to be imported in the jsx file
     'react/react-in-jsx-scope': 'off',
-    // Cảnh báo khi thẻ <a target='_blank'> mà không có rel="noreferrer"
+    // Warn when <a target='_blank'> tag without rel="noreferrer"
     'react/jsx-no-target-blank': 'warn',
-    // Tăng cường một số rule prettier (copy từ file .prettierrc qua)
+    // Enhanced some prettier rules (copy from .prettierrc file via)
     'prettier/prettier': [
       'warn',
       {

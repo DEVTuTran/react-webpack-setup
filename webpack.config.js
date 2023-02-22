@@ -11,46 +11,43 @@ const Dotenv = require('dotenv-webpack')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 const webpack = require('webpack')
 
-// Cái dòng này giúp Editor gợi ý được các giá trị cho dòng code config ngay phía dưới nó
-// (giống như đang dùng Typescript vậy đó 😉)
+// Help Editor suggest values for the line of config code just below it
 /** @type {(env: any, arg: {mode: string}) => import('webpack').Configuration} **/
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production'
   const isAnalyze = Boolean(env?.analyze)
   /** @type {import('webpack').Configuration} **/
   const config = {
-    // Quy định cách webpack giải quyết các file
     resolve: {
-      // Giải quyết các file theo thứ tự ưu tiên từ trái sang phải nếu import
-      // các file cùng một tên nhưng các đuôi mở rộng
+      // Resolve files in order of precedence from left to right if import
       extensions: ['.tsx', '.ts', '.jsx', '.js']
     },
-    // File đầu vào cho webpack, file này thường là file import mọi file khác
+    // The input file for webpack, this file is usually the file that imports all other files
     entry: ['./src/index.tsx'],
-    // Khai báo các module dùng trong webpack
+    // Declare the modules used in webpack
     module: {
       rules: [
         {
-          test: /\.tsx?$/, // duyệt các file .ts || .tsx
+          test: /\.tsx?$/,
           exclude: /node_modules/,
-          use: ['babel-loader'] // Giúp dịch code TS, React sang JS,
+          use: ['babel-loader'] // Help translate TS, React code to JS,
         },
         {
-          test: /\.(s[ac]ss|css)$/, // duyệt các file sass || scss || css
+          test: /\.(s[ac]ss|css)$/,
           use: [
             MiniCssExtractPlugin.loader,
             {
-              loader: 'css-loader', // dùng import 'filename.css' trong file tsx, ts
-              options: { sourceMap: !isProduction } // Hiển thị sourcemap ở môi trường dev cho dễ debug
+              loader: 'css-loader', // use import 'filename.css' in file tsx, ts
+              options: { sourceMap: !isProduction } // Display sourcemap in dev environment for easy debugging
             },
             {
-              loader: 'sass-loader', // biên dịch sass sang css
+              loader: 'sass-loader', // compile sass to css
               options: { sourceMap: !isProduction }
             }
           ]
         },
         {
-          test: /\.(png|svg|jpg|gif)$/, // Dùng để import file ảnh, nếu có video/ảnh định dạng khác thì thêm vào đây
+          test: /\.(png|svg|jpg|gif)$/, // Used to import image files, if you have videos/photos in other formats, add them here
           use: [
             {
               loader: 'file-loader',
@@ -61,7 +58,7 @@ module.exports = (env, argv) => {
           ]
         },
         {
-          test: /\.(eot|ttf|woff|woff2)$/, // Dùng để import font
+          test: /\.(eot|ttf|woff|woff2)$/, // Used to import font
           use: [
             {
               loader: 'file-loader',
@@ -75,30 +72,30 @@ module.exports = (env, argv) => {
     },
 
     output: {
-      filename: 'static/js/main.[contenthash:6].js', // Thêm mã hash tên file dựa vào content để tránh bị cache bởi CDN hay browser.
-      path: path.resolve(__dirname, 'dist'), // Build ra thư mục dist
+      filename: 'static/js/main.[contenthash:6].js', // Add file name hash based on content to avoid being cached by CDN or browser.
+      path: path.resolve(__dirname, 'dist'), // Build to dist folder
       publicPath: '/'
     },
     devServer: {
-      hot: true, // enable Hot Module Replacement, kiểu như reload nhanh
-      port: 3000, // Chạy port 3000 khi dev
-      historyApiFallback: true, // Phải set true nếu không khi bạn dùng lazyload module React thì sẽ gặp lỗi không load được file.
-      // Cấu hình phục vụ file html trong public
+      hot: true, // enable Hot Module Replacement
+      port: 3000,
+      historyApiFallback: true, // Must set to true otherwise when you lazyload React module, you will get an error that the file could not be loaded.
+      // Configure serving html files in public
       static: {
         directory: path.resolve(__dirname, 'public', 'index.html'),
         serveIndex: true,
-        watch: true // khi thay đổi content trong index.html thì cũng sẽ reload
+        watch: true // when changing content in index.html it will also reload
       }
     },
     devtool: isProduction ? false : 'source-map',
     plugins: [
-      // Đưa css ra thành một file .css riêng biệt thay vì bỏ vào file .js
+      // Output css into a separate .css file instead of .js
       new MiniCssExtractPlugin({
         filename: isProduction ? 'static/css/[name].[contenthash:6].css' : '[name].css'
       }),
-      // Dùng biến môi trường env trong dự án
+      // Use the env environment variable in the project
       new Dotenv(),
-      // Copy mọi files trong folder public trừ file index.html
+      // Copy all files in public folder except index.html
       new CopyWebpackPlugin({
         patterns: [
           {
@@ -111,36 +108,36 @@ module.exports = (env, argv) => {
         ]
       }),
 
-      // Plugin hỗ trợ thêm thẻ style và script vào index.html
+      // The plugin supports adding style and script tags to index.html
       new HtmlWebpackPlugin({
         template: path.resolve(__dirname, 'public', 'index.html'),
         filename: 'index.html'
       }),
-      // Thêm eslint cho webpack
+      // Add eslint for webpack
       new ESLintPlugin({
         extensions: ['.tsx', '.ts', '.js', '.jsx']
       })
     ]
   }
 
-  //🚀 Nếu build thì sẽ thêm một số config
+  //🚀 If build, will add some config
   if (isProduction) {
     config.plugins = [
       ...config.plugins,
-      new webpack.ProgressPlugin(), // Hiển thị % khi build
-      // Nén brotli css và js nhưng không hiểu sao chỉ có js được nén 🥲
+      new webpack.ProgressPlugin(), // Show % when building
+      // Compress brotli css and js
       new CompressionPlugin({
         test: /\.(css|js)$/,
         algorithm: 'brotliCompress'
       }),
-      new CleanWebpackPlugin() // Dọn dẹp thư mục build trước đó để chuẩn bị cho bản build hiện tại
+      new CleanWebpackPlugin() // Clean up previous build folder to prepare for current build
     ]
     if (isAnalyze) {
       config.plugins = [...config.plugins, new BundleAnalyzerPlugin()]
     }
     config.optimization = {
       minimizer: [
-        `...`, // Cú pháp kế thừa bộ minimizers mặc định trong webpack 5 (i.e. `terser-webpack-plugin`)
+        `...`,
         new CssMinimizerPlugin() // minify css
       ]
     }
